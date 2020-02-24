@@ -12,6 +12,7 @@
         "no-console": false,
         "semicolon": false,
         "jsx-no-multiline-js": false,
+        "react-hooks/exhaustive-deps": false,
         "jsx-no-lambda": false
     },
     "rulesDirectory": [

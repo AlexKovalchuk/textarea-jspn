@@ -1,10 +1,11 @@
 import * as React from 'react';
+import JsonInput from './JsonInput/JsonTextarea';
 
 const App = (props: any) => {
 
     return (
         <div className="home-page-container">
-            <h1>Home Component</h1>
+            <JsonInput />
         </div>
     )
 }

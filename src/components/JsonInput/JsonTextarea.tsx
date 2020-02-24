@@ -4,6 +4,7 @@ import './JsonTextareaStyle.css';
 const JsonInput:FunctionComponent<{}> = (props: any) => {
     const jsn={"glossary":{"title":"example glossary","GlossDiv":{"title":"S","GlossList":{"GlossEntry":{"ID":"SGML","SortAs":"SGML","GlossTerm":"Standard Generalized Markup Language","Acronym":"SGML","Abbrev":"ISO 8879:1986","GlossDef":{"para":"A meta-markup language, used to create markup languages such as DocBook.","GlossSeeAlso":["GML","XML"]},"GlossSee":"markup"}}}}}
     const [jsonText, setJsonText] = useState('unset');
+    const [jsonArray, setJsonArray] = useState<Array<any>>([]);
     const [selection, setSelection] = useState(0);
     let textareaElementRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,37 +22,30 @@ const JsonInput:FunctionComponent<{}> = (props: any) => {
     }, [jsonText])
 
     useEffect(() => {
-        // setJson(jsn);
-        setJsonText(JSON.stringify(jsn, undefined, 2))
+        const arr = [];
+        arr.push(jsn);
+        setJsonArray(arr);
+        setJsonText(JSON.stringify(arr, undefined, 2))
     }, [])
 
     const textAreaOnChangeHandler = (element: React.FormEvent<HTMLTextAreaElement>): void => {
         console.log('element', element.currentTarget.value);
+        setSelection(textareaElementRef.current!.selectionStart);
         setJsonText(element.currentTarget.value);
     }
     
     const onKeyPressed = (event:  any): void => {
-        console.log('textareaElementRef',textareaElementRef);
-        
         // enableTab();
         if (event.keyCode === 9) { // tab was pressed
             event.preventDefault();
             const { selectionStart, selectionEnd } = event.target
-            // get caret position/selection
-            
-            let start = selectionStart;
-            let end =selectionEnd;
-
-            // set textarea value to: text before caret + tab + text after caret
-            let value = jsonText.substring(0, start) + '\t' + jsonText.substring(end);
-            
-            // put caret at right position again
-            setSelection(start+1);
-            // save new value
-            setJsonText(value);
-            
-            
+            let value = jsonText.substring(0, selectionStart) + '\t' + jsonText.substring(selectionEnd);
+            setSelection(selectionStart + 1);
+            setJsonText(value);            
         }
+        // handle enter
+        
+        // handle backspace <- click
     }
    
     console.log('render');
@@ -60,16 +54,23 @@ const JsonInput:FunctionComponent<{}> = (props: any) => {
         <div className="json-textarea-container">
             <h1>Input Json component</h1>
             <h1>{jsonText}</h1>
-            <textarea 
-                ref={textareaElementRef}
-                rows={40} 
-                cols={140} 
-                className="json-textarea" 
-                value={jsonText}
-                tabIndex={0}
-                onKeyDown={onKeyPressed}
-                onChange={(e: React.FormEvent<HTMLTextAreaElement>) => textAreaOnChangeHandler(e)}
-            />
+            <div className="json-textarea-block">
+                <div className="block-one">
+                    <textarea 
+                        ref={textareaElementRef}
+                        rows={40} 
+                        cols={125} 
+                        className="json-textarea" 
+                        value={jsonText}
+                        tabIndex={0}
+                        onKeyDown={onKeyPressed}
+                        onChange={(e: React.FormEvent<HTMLTextAreaElement>) => textAreaOnChangeHandler(e)}
+                    />
+                </div>
+                <div className="block-two">
+                    List...
+                </div>
+            </div>
         </div>
     )
 }

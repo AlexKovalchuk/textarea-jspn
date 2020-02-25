@@ -1,0 +1,18 @@
+.json-textarea-container{
+    margin: 50px;
+}
+
+.json-textarea-block {
+    display: flex;
+
+}
+
+.block-one {
+    flex: 1;
+}
+
+.block-two {
+    flex: 1;
+    height: 600px;
+    background-color: aqua;
+}

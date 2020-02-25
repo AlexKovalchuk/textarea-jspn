@@ -9,11 +9,9 @@ export const history = createHistory();
 // but we pass in a customer history to it.
 const AppRouter = () => (
   <Router history={history}>
-    <div>
-      <Switch>
-        <Route path="/" component={App} />
-      </Switch>
-    </div>
+    <Switch>
+      <Route path="/" component={App} />
+    </Switch>
   </Router>
 );
 

@@ -16,3 +16,9 @@
     height: 600px;
     background-color: aqua;
 }
+
+.autocomplete {
+    /*the container must be positioned relative:*/
+    position: relative;
+    display: inline-block;
+  }

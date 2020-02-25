@@ -23,6 +23,12 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
         return JSON.stringify(data, undefined, 2)
     }
 
+    const checkIsOnlyLetters = (str: string): boolean => {
+        var letters = /^[A-Za-z]+$/;
+        if(str.match(letters)) return true
+        else return false
+    }
+
     useEffect(() => {
         changeCursorePosition();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -39,6 +45,15 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
         setSelection(textareaElementRef.current!.selectionStart);
         setJsonText(element.currentTarget.value);
     }
+
+    const clearStringJson = (str: string): string => {
+        return str.split(' ').reduce((accumulate:string, currentValue: string) => {
+            if(!checkIsOnlyLetters(currentValue)) return accumulate += currentValue;
+            return accumulate;
+        });
+    } 
+
+
     
     const onKeyPressed = (event:  any): void => {
         if (event.keyCode === 9) { // tab was pressed
@@ -49,18 +64,17 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
             const substringTab = substringStart[substringStart.length-1];
             const findedTitles: Array<any> = optionList.filter((option: { title: React.ReactNode }) => option.title === substringTab)
             if(findedTitles && findedTitles.length) {
-                value = jsonText.substring(0, selectionStart - findedTitles[0].title.length) + `${convertObjectToString(findedTitles[0])},` + jsonText.substring(selectionEnd);
-                setJsonText(convertObjectToString(JSON.parse(value)));   
+                console.log('if', findedTitles);
+                value = clearStringJson(jsonText.substring(0, selectionStart - findedTitles[0].title.length) + `${convertObjectToString(findedTitles[0])},` + jsonText.substring(selectionEnd))
+                setJsonText(convertObjectToString(JSON.parse(value)));                
             }
             else {
+                console.log('else', substringTab, ' - ', findedTitles);
                 value = jsonText.substring(0, selectionStart) + '  ' + jsonText.substring(selectionEnd);
-                setJsonText(value); 
+                setJsonText(value);
             }
             
-            console.log('value', convertObjectToString(JSON.parse(value)));
-            
-            setSelection(selectionStart + 1);
-            // setJsonText(value); 
+            setSelection(selectionStart + 1); 
         }
     }
 

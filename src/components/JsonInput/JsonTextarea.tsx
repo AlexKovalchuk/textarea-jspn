@@ -75,7 +75,6 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
     return (
         <div className="json-textarea-container">
             <h1>Input Json component</h1>
-            <div>{jsonText}</div>
             <div className="json-textarea-block">
                 <div className="block-one">
                     <textarea 

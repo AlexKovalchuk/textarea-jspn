@@ -1,8 +1,12 @@
 import React, { FunctionComponent, useState, useEffect, useRef } from 'react';
 import './JsonTextareaStyle.css';
 
-const JsonInput:FunctionComponent<{}> = (props: any) => {
-    const jsn={"glossary":{"title":"example glossary","GlossDiv":{"title":"S","GlossList":{"GlossEntry":{"ID":"SGML","SortAs":"SGML","GlossTerm":"Standard Generalized Markup Language","Acronym":"SGML","Abbrev":"ISO 8879:1986","GlossDef":{"para":"A meta-markup language, used to create markup languages such as DocBook.","GlossSeeAlso":["GML","XML"]},"GlossSee":"markup"}}}}}
+interface ParentStateItem {
+    optionList: Array<object>
+}
+
+const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
+    const {optionList} = props;
     const [jsonText, setJsonText] = useState('unset');
     const [jsonArray, setJsonArray] = useState<Array<any>>([]);
     const [selection, setSelection] = useState(0);
@@ -10,11 +14,13 @@ const JsonInput:FunctionComponent<{}> = (props: any) => {
 
     const changeCursorePosition = () => {
         if(textareaElementRef && textareaElementRef.current) {
-            const {selectionStart, selectionEnd,value} = textareaElementRef.current;
-            console.log('selectionStart', selectionStart, 'selectionEnd', selectionEnd, 'value', value);
             textareaElementRef.current.selectionStart = selection;
             textareaElementRef.current.selectionEnd = selection;
         }
+    }
+
+    const convertObjectToString = (data: any) => {
+        return JSON.stringify(data, undefined, 2)
     }
 
     useEffect(() => {
@@ -23,37 +29,53 @@ const JsonInput:FunctionComponent<{}> = (props: any) => {
 
     useEffect(() => {
         const arr = [];
-        arr.push(jsn);
-        setJsonArray(arr);
-        setJsonText(JSON.stringify(arr, undefined, 2))
+        arr.push(optionList);
+        setJsonArray([...optionList]);
+        // setJsonText(JSON.stringify(optionList, undefined, 2));
+        setJsonText(convertObjectToString(optionList));
     }, [])
 
     const textAreaOnChangeHandler = (element: React.FormEvent<HTMLTextAreaElement>): void => {
-        console.log('element', element.currentTarget.value);
         setSelection(textareaElementRef.current!.selectionStart);
         setJsonText(element.currentTarget.value);
     }
     
     const onKeyPressed = (event:  any): void => {
-        // enableTab();
         if (event.keyCode === 9) { // tab was pressed
             event.preventDefault();
+            let value = '';
             const { selectionStart, selectionEnd } = event.target
-            let value = jsonText.substring(0, selectionStart) + '\t' + jsonText.substring(selectionEnd);
+            const substringStart = jsonText.substring(0, selectionStart).split(' ');
+            const substringTab = substringStart[substringStart.length-1];
+            const findedTitles: Array<any> = optionList.filter((option: { title: React.ReactNode }) => option.title === substringTab)
+            if(findedTitles && findedTitles.length) {
+                value = jsonText.substring(0, selectionStart - findedTitles[0].title.length) + `${convertObjectToString(findedTitles[0])},` + jsonText.substring(selectionEnd);
+                setJsonText(convertObjectToString(JSON.parse(value)));   
+            }
+            else {
+                value = jsonText.substring(0, selectionStart) + '  ' + jsonText.substring(selectionEnd);
+                setJsonText(value); 
+            }
+            
+            console.log('value', convertObjectToString(JSON.parse(value)));
+            
             setSelection(selectionStart + 1);
-            setJsonText(value);            
+            // setJsonText(value); 
         }
-        // handle enter
-        
-        // handle backspace <- click
     }
-   
-    console.log('render');
+
+    const renderOptionList = () => {
+        return optionList.map((option: { title: React.ReactNode; }, index:number) => {
+            return (
+                <div key={`option-name-key-${index}`}>{option.title}</div>
+            )
+        });
+    }
     
     return (
         <div className="json-textarea-container">
             <h1>Input Json component</h1>
-            <h1>{jsonText}</h1>
+            <div>{jsonText}</div>
             <div className="json-textarea-block">
                 <div className="block-one">
                     <textarea 
@@ -69,6 +91,7 @@ const JsonInput:FunctionComponent<{}> = (props: any) => {
                 </div>
                 <div className="block-two">
                     List...
+                    {renderOptionList()}
                 </div>
             </div>
         </div>

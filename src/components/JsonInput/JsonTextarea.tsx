@@ -8,7 +8,7 @@ interface ParentStateItem {
 const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
     const {optionList} = props;
     const [jsonText, setJsonText] = useState('unset');
-    const [jsonArray, setJsonArray] = useState<Array<any>>([]);
+    // const [jsonArray, setJsonArray] = useState<Array<any>>([]);
     const [selection, setSelection] = useState(0);
     let textareaElementRef = useRef<HTMLTextAreaElement>(null);
 
@@ -25,14 +25,16 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
 
     useEffect(() => {
         changeCursorePosition();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonText])
 
     useEffect(() => {
         const arr = [];
         arr.push(optionList);
-        setJsonArray([...optionList]);
+        // setJsonArray([...optionList]);
         // setJsonText(JSON.stringify(optionList, undefined, 2));
         setJsonText(convertObjectToString(optionList));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const textAreaOnChangeHandler = (element: React.FormEvent<HTMLTextAreaElement>): void => {

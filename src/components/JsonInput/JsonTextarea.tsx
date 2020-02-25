@@ -29,11 +29,9 @@ const JsonInput:FunctionComponent<ParentStateItem> = (props: any) => {
     }, [jsonText])
 
     useEffect(() => {
-        const arr = [];
-        arr.push(optionList);
-        // setJsonArray([...optionList]);
-        // setJsonText(JSON.stringify(optionList, undefined, 2));
+        // setJsonArray([...optionList]); // temporary commented
         setJsonText(convertObjectToString(optionList));
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 

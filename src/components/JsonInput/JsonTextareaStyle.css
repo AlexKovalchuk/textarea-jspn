@@ -4,7 +4,6 @@
 
 .json-textarea-block {
     display: flex;
-
 }
 
 .block-one {
@@ -12,13 +11,17 @@
 }
 
 .block-two {
+    display: flex;
     flex: 1;
     height: 600px;
+}
+
+.option-list-container {
+    flex: 1;
     background-color: aqua;
 }
 
-.autocomplete {
-    /*the container must be positioned relative:*/
-    position: relative;
-    display: inline-block;
-  }
+.option-autocomplete-container {
+    flex: 1;
+    background-color: skyblue;
+}

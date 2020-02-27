@@ -13,7 +13,7 @@
         "no-console": false,
         "semicolon": false,
         "jsx-no-multiline-js": false,
-        "react-hooks/exhaustive-deps": false,
+        "exhaustive-deps": false,
         "jsx-no-lambda": false,
         "no-any": true
     },

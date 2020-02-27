@@ -5,9 +5,11 @@ interface ParentPropsItem {
     optionList: { title: string }[]
 }
 
+// here how work with useState array setTheArray(oldArray => [...oldArray, newElement]);
+
 const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     const {optionList} = props;
-    // const [jsonArray, setJsonArray] = useState<Array<any>>([]);
+    const [autocompleteArray, setAutocompleteArray] = useState<{title: string}[]>([]);
     const [jsonText, setJsonText] = useState('unset');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [autocomplite, setAutocomplite] = useState([]);
@@ -26,9 +28,7 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     }
 
     const checkIsOnlyLetters = (str: string): boolean => {
-        const letters = /^[A-Za-z]+$/;
-        if(str.match(letters)) return true
-        else return false
+        return str.match(/^[A-Za-z]+$/) ? true : false;
     }
 
     useEffect(() => {
@@ -48,7 +48,10 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         const newValue = element.currentTarget.value
         setSelection(selectionStart);
         setJsonText(newValue);
-        findMatchesOptionsTitles(getLastTypedWord(selectionStart, newValue));
+        const optionsForAutocomplete = findMatchesOptionsTitles(getLastTypedWord(selectionStart, newValue));
+        console.log('optionsForAutocomplete', optionsForAutocomplete);
+        setAutocompleteArray(optionsForAutocomplete);
+        // save optionsForAutocomplete to state, use state to build autocomplete render block
     }
 
     const getLastTypedWord = (selectionStart:  number, text: string): string => {
@@ -57,7 +60,7 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         return substringStart[substringStart.length-1];
     }
 
-    const findMatchesOptionsTitles = (text: string): object[] => {
+    const findMatchesOptionsTitles = (text: string): {title: string}[] => {
         return  optionList.filter(option => option.title!.substring(0, text.length).toLowerCase() === text.toLowerCase());
     }
 
@@ -88,6 +91,16 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         });
     }
 
+    const renderAutocompleteList = () => {
+        return autocompleteArray.map((option: {title: string}, index: number) => {
+            const {title} = option;
+            return (
+                <div key={`autocomplete-item-${index}-${title}`}>{title}</div>
+            )
+        })
+    }
+    console.log('render', autocompleteArray);
+
     return (
         <div className="json-textarea-container">
             <h1>Input Json component</h1>
@@ -105,8 +118,14 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
                     />
                 </div>
                 <div className="block-two">
-                    List...
-                    {renderOptionList()}
+                    <div className="option-list-container">
+                        <div>List...:</div>
+                        {renderOptionList()}
+                    </div>
+                    <div className="option-autocomplete-container">
+                        autocomlete will be here...
+                        {renderAutocompleteList()}
+                    </div>
                 </div>
             </div>
         </div>

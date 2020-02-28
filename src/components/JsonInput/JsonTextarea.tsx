@@ -1,5 +1,10 @@
 import React, { FunctionComponent, useState, useEffect, useRef } from 'react';
 import './JsonTextareaStyle.css';
+import {
+    UP,
+    DOWN,
+    ACTIVE_OPTION_CLASS,
+} from './constants';
 
 interface ParentPropsItem {
     optionList: { title: string }[]
@@ -11,8 +16,7 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     const {optionList} = props;
     const [autocompleteArray, setAutocompleteArray] = useState<{title: string}[]>([]);
     const [jsonText, setJsonText] = useState('unset');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [autocomplite, setAutocomplite] = useState([]);
+    const [activeAutocompleteElementIndex, setActiveAutocompleteElementIndex] = useState(0);
     const [selection, setSelection] = useState(0);
     const textareaElementRef = useRef<HTMLTextAreaElement>(null);
 
@@ -27,12 +31,11 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         return JSON.stringify(data, undefined, 2)
     }
 
-    const checkIsOnlyLetters = (str: string): boolean => {
-        return str.match(/^[A-Za-z]+$/) ? true : false;
-    }
+    const checkIsOnlyLetters = (str: string): boolean => !!str.match(/^[A-Za-z]+$/);
 
     useEffect(() => {
         changeCursorePosition();
+        if(!autocompleteArray.length) setActiveAutocompleteElementIndex(0) // clear selection if no autocomplite options there.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonText])
 
@@ -49,7 +52,6 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         setSelection(selectionStart);
         setJsonText(newValue);
         const optionsForAutocomplete = findMatchesOptionsTitles(getLastTypedWord(selectionStart, newValue));
-        console.log('optionsForAutocomplete', optionsForAutocomplete);
         setAutocompleteArray(optionsForAutocomplete);
         // save optionsForAutocomplete to state, use state to build autocomplete render block
     }
@@ -61,6 +63,7 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     }
 
     const findMatchesOptionsTitles = (text: string): {title: string}[] => {
+        if(!text) return [];
         return  optionList.filter(option => option.title!.substring(0, text.length).toLowerCase() === text.toLowerCase());
     }
 
@@ -71,20 +74,66 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         });
     }
 
+    const changeActiveIndexAutocompleteElement = (typedAction: string): void => {
+        console.log(typedAction);
+        const countOfAutocompleteTitles = autocompleteArray.length;
+        if (typedAction === UP) {
+            if(activeAutocompleteElementIndex === 1) setActiveAutocompleteElementIndex(countOfAutocompleteTitles);
+            else setActiveAutocompleteElementIndex(activeAutocompleteElementIndex - 1)
+        }
+
+        if (typedAction === DOWN) {
+            if(countOfAutocompleteTitles === activeAutocompleteElementIndex)   setActiveAutocompleteElementIndex(1);
+            else setActiveAutocompleteElementIndex(activeAutocompleteElementIndex + 1)
+        }
+    }
+
     const onKeyPressed = (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
         if (event.keyCode === 9) { // tab was pressed
             event.preventDefault();
             const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
             const substringTab = getLastTypedWord(selectionStart, jsonText);
-            const findedTitles: {title: string} | undefined = optionList.find((option: {title: string}) => option.title === substringTab);
-            if (findedTitles) setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - findedTitles.title.length) + `${convertObjectToString(findedTitles)},` + jsonText.substring(selectionEnd)))));
-            else setJsonText(jsonText.substring(0, selectionStart) + '  ' + jsonText.substring(selectionEnd));
-            setSelection(selectionStart + 1);
+            const findedTitlesOption: {title: string} | undefined = optionList.find((option: {title: string}) => option.title === substringTab);
+            if (findedTitlesOption) {
+                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - findedTitlesOption.title.length) + `${convertObjectToString(findedTitlesOption)},` + jsonText.substring(selectionEnd)))));
+                setSelection(selectionStart);
+            }
+            else {
+                setJsonText(jsonText.substring(0, selectionStart) + '  ' + jsonText.substring(selectionEnd));
+                setSelection(selectionStart + 1)
+            }
+            setAutocompleteArray([]);
+            setActiveAutocompleteElementIndex(0);
+        }
+
+        if (event.keyCode === 13) { // enter key pressed
+            console.log('Enter key is presed');
+            if (autocompleteArray.length) {
+                const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
+                const selectedObject = autocompleteArray[activeAutocompleteElementIndex-1];
+                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - getLastTypedWord(selectionStart, jsonText).length) + `${convertObjectToString(selectedObject)},` + jsonText.substring(selectionEnd)))));
+                setAutocompleteArray([]);
+                setActiveAutocompleteElementIndex(0);
+            }
+        }
+
+        if (event.keyCode === 38) { // up key pressed
+            if (autocompleteArray.length) {
+                event.preventDefault();
+                changeActiveIndexAutocompleteElement(UP);
+            }
+        }
+
+        if (event.keyCode === 40) { // down key pressed
+            if (autocompleteArray.length) {
+                event.preventDefault();
+                changeActiveIndexAutocompleteElement(DOWN);
+            }
         }
     }
 
     const renderOptionList = () => {
-        return optionList.map((option: { title: React.ReactNode; }, index:number) => {
+        return optionList.map((option: { title: string }, index: number) => {
             return (
                 <div key={`option-name-key-${index}`}>{option.title}</div>
             )
@@ -94,12 +143,18 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     const renderAutocompleteList = () => {
         return autocompleteArray.map((option: {title: string}, index: number) => {
             const {title} = option;
+            const activeOption: string = activeAutocompleteElementIndex === index + 1 ? ACTIVE_OPTION_CLASS : '';
             return (
-                <div key={`autocomplete-item-${index}-${title}`}>{title}</div>
+                <div
+                    className={activeOption}
+                    key={`autocomplete-item-${index}-${title}`}
+                >
+                    {title}
+                    <input type="hidden" value={title} disabled={true} />
+                </div>
             )
         })
     }
-    console.log('render', autocompleteArray);
 
     return (
         <div className="json-textarea-container">

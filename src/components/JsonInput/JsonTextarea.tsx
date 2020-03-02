@@ -53,13 +53,26 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         setJsonText(newValue);
         const optionsForAutocomplete = findMatchesOptionsTitles(getLastTypedWord(selectionStart, newValue));
         setAutocompleteArray(optionsForAutocomplete);
-        // save optionsForAutocomplete to state, use state to build autocomplete render block
     }
 
     const getLastTypedWord = (selectionStart:  number, text: string): string => {
         const substringStart = text.substring(0, selectionStart).split(' ');
-        // console.log('substringStart', substringStart);
         return substringStart[substringStart.length-1];
+    }
+
+    const checkPreviusComma = (selectionStart:  number, text: string): string => {
+        const substringStart = text.substring(0, selectionStart).split(' ');
+        for (let index = substringStart.length - 2; index >= 0; index--) {
+            const element = substringStart[index];
+            if(element) return element
+        }
+        return '';
+    }
+
+    const getFirstTypedWord = (selectionEnd:  number, text: string): string =>  {
+        const subStringEnd = text.substring(selectionEnd).split(' ');
+        // console.log('subStringEnd', subStringEnd);
+        return subStringEnd[0];
     }
 
     const findMatchesOptionsTitles = (text: string): {title: string}[] => {
@@ -75,7 +88,7 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
     }
 
     const changeActiveIndexAutocompleteElement = (typedAction: string): void => {
-        console.log(typedAction);
+        // console.log(typedAction);
         const countOfAutocompleteTitles = autocompleteArray.length;
         if (typedAction === UP) {
             if(activeAutocompleteElementIndex === 1) setActiveAutocompleteElementIndex(countOfAutocompleteTitles);
@@ -88,14 +101,29 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         }
     }
 
+    const insertNewObjectToStringData = (event: React.KeyboardEvent<HTMLTextAreaElement>, searchingText: string, findedObject: {}): void => {
+        const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
+        const textBefore = checkPreviusComma(selectionStart, jsonText);
+        const textAfter = getFirstTypedWord(selectionEnd, jsonText);
+        console.log('textBefore', textBefore);
+        console.log('textAfter', textAfter);
+        if(textBefore && textBefore.includes(',')){
+            setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - searchingText.length) + `${convertObjectToString(findedObject)},` + jsonText.substring(selectionEnd)))));
+        } else if(textBefore && textBefore.includes('}')) {
+            setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - searchingText.length) + `,${convertObjectToString(findedObject)}` + jsonText.substring(selectionEnd)))));
+        } else {
+            setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - searchingText.length) + `${convertObjectToString(findedObject)},` + jsonText.substring(selectionEnd)))));
+        }
+    };
+
     const onKeyPressed = (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
         if (event.keyCode === 9) { // tab was pressed
             event.preventDefault();
             const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
-            const substringTab = getLastTypedWord(selectionStart, jsonText);
-            const findedTitlesOption: {title: string} | undefined = optionList.find((option: {title: string}) => option.title === substringTab);
-            if (findedTitlesOption) {
-                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - findedTitlesOption.title.length) + `${convertObjectToString(findedTitlesOption)},` + jsonText.substring(selectionEnd)))));
+            const lastTypedWord = getLastTypedWord(selectionStart, jsonText);
+            const selectedObject: {title: string} | undefined = optionList.find((option: {title: string}) => option.title === lastTypedWord);
+            if (selectedObject) {
+                insertNewObjectToStringData(event, lastTypedWord, selectedObject);
                 setSelection(selectionStart);
             }
             else {
@@ -107,11 +135,12 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
         }
 
         if (event.keyCode === 13) { // enter key pressed
-            console.log('Enter key is presed');
             if (autocompleteArray.length) {
                 const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
                 const selectedObject = autocompleteArray[activeAutocompleteElementIndex-1];
-                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - getLastTypedWord(selectionStart, jsonText).length) + `${convertObjectToString(selectedObject)},` + jsonText.substring(selectionEnd)))));
+                const lastTypedWord = getLastTypedWord(selectionStart, jsonText);
+                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - lastTypedWord.length) + `${convertObjectToString(selectedObject)},` + jsonText.substring(selectionEnd)))));
+                // insertNewObjectToStringData(event, lastTypedWord, selectedObject); // TODO Implement
                 setAutocompleteArray([]);
                 setActiveAutocompleteElementIndex(0);
             }
@@ -152,8 +181,8 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
                     {title}
                     <input type="hidden" value={title} disabled={true} />
                 </div>
-            )
-        })
+            );
+        });
     }
 
     return (

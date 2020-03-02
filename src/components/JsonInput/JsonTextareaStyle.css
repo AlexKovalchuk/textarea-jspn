@@ -4,7 +4,6 @@
 
 .json-textarea-block {
     display: flex;
-
 }
 
 .block-one {
@@ -12,7 +11,25 @@
 }
 
 .block-two {
+    display: flex;
     flex: 1;
     height: 600px;
+}
+
+.option-list-container {
+    flex: 1;
     background-color: aqua;
+    padding: 20px;
+}
+
+.option-autocomplete-container {
+    flex: 1;
+    background-color: skyblue;
+    padding: 20px;
+}
+
+.active-option-class {
+    border: 1px solid orangered;
+    background-color: goldenrod;
+    font-weight: bold;
 }

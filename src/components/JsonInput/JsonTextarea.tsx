@@ -136,11 +136,10 @@ const JsonInput:FunctionComponent<ParentPropsItem> = props => {
 
         if (event.keyCode === 13) { // enter key pressed
             if (autocompleteArray.length) {
-                const { selectionStart, selectionEnd } = event.target as HTMLTextAreaElement;
+                const { selectionStart } = event.target as HTMLTextAreaElement;
                 const selectedObject = autocompleteArray[activeAutocompleteElementIndex-1];
                 const lastTypedWord = getLastTypedWord(selectionStart, jsonText);
-                setJsonText(convertObjectToString(JSON.parse(clearStringJson(jsonText.substring(0, selectionStart - lastTypedWord.length) + `${convertObjectToString(selectedObject)},` + jsonText.substring(selectionEnd)))));
-                // insertNewObjectToStringData(event, lastTypedWord, selectedObject); // TODO Implement
+                insertNewObjectToStringData(event, lastTypedWord, selectedObject);
                 setAutocompleteArray([]);
                 setActiveAutocompleteElementIndex(0);
             }
